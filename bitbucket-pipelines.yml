@@ -1,0 +1,65 @@
+pipelines:
+  branches:
+    master:
+      - step:
+          name: Rsync to PROD and notify Mattermost
+          script:
+            # Update the remote with rsync
+            - rsync -zrSlh --stats --delete ./* $SD_USER_PROD@$SD_SERVER_PROD:applications/krtbtesmze/public_html/wp-conent/plugins/access-control
+
+            # Install JQ
+            - apt-get update && apt-get install -y jq
+
+            # Purge the cache
+            - chmod +x purge-cache.sh
+            - ./purge-cache.sh "$SERVER_ID_PROD" "$APP_ID_PROD" "$CD_API_EMAIL" "$CD_API_KEY"
+
+            # Notify Mattermost
+            - COMMIT_MESSAGE=$(git log --format=%B -n 1 $BITBUCKET_COMMIT)
+            - COMMIT_DATE=$(git log -n 1 --pretty=format:'%ci' $BITBUCKET_COMMIT)
+            - COMMIT_AUTHOR=$(git log -n 1 --pretty=format:'%an' $BITBUCKET_COMMIT)
+            - >
+              curl -d '{
+                  "channel": "wp-team-activity",
+                  "username": "Bitbucket Pipelines",
+                  "text": "New commit deployed to #WordpressWiki **master** branch on ```Access Control Plugin``` with the following message: \n ```\n'"$COMMIT_MESSAGE"'\nEnv: 'PRODUCTION'\nDate: '"$COMMIT_DATE"'\nAuthor: '"$COMMIT_AUTHOR"'\n ```"
+                }' -H "Content-Type: application/json" -X POST https://matter.dblexchange.com/hooks/t34yjuo6a3refeeafr3itdauge
+    # stg:
+    #    - step:
+    #        name: Rsync to QA and notify Mattermost
+    #        script:
+    #          # Update the remote with rsync
+    #          - rsync -zrSlh --stats --delete ./* $SD_USER_STG@$SD_SERVER_STG:applications/gzchgubsru/public_html/widgets
+
+    #          # Install JQ
+    #          - apt-get update && apt-get install -y jq
+
+    #          # Purge the cache
+    #          - chmod +x purge-cache.sh
+    #          - ./purge-cache.sh "$SERVER_ID_STG" "$APP_ID_STG" "$CD_API_EMAIL" "$CD_API_KEY"
+
+    #          # Notify Mattermost
+    #          - COMMIT_MESSAGE=$(git log --format=%B -n 1 $BITBUCKET_COMMIT)
+    #          - COMMIT_DATE=$(git log -n 1 --pretty=format:'%ci' $BITBUCKET_COMMIT)
+    #          - COMMIT_AUTHOR=$(git log -n 1 --pretty=format:'%an' $BITBUCKET_COMMIT)
+    #          - >
+    #            curl -d '{
+    #                "channel": "wp-team-activity",
+    #                "username": "Bitbucket Pipelines",
+    #                "text": "New commit deployed to #SportsAndData **master** branch on ```Widgets``` with the following message: \n ```\n'"$COMMIT_MESSAGE"'\nEnv: '"$WPE_PROD_ENV"'\nDate: '"$COMMIT_DATE"'\nAuthor: '"$COMMIT_AUTHOR"'\n ```"
+    #              }' -H "Content-Type: application/json" -X POST https://matter.dblexchange.com/hooks/t34yjuo6a3refeeafr3itdauge
+    dev:
+      - step:
+          name: Storing code into dev branch and notify Mattermost
+          deployment: staging
+          script:
+            # Notify Mattermost
+            - COMMIT_MESSAGE=$(git log --format=%B -n 1 $BITBUCKET_COMMIT)
+            - COMMIT_DATE=$(git log -n 1 --pretty=format:'%ci' $BITBUCKET_COMMIT)
+            - COMMIT_AUTHOR=$(git log -n 1 --pretty=format:'%an' $BITBUCKET_COMMIT)
+            - >
+              curl -d '{
+                  "channel": "wp-team-activity",
+                  "username": "Bitbucket Pipelines",
+                  "text": "New commit deployed to  #WordpressWiki **dev** branch on ```Access Control Plugin``` with the following message: \n ```\n'"$COMMIT_MESSAGE"'\nEnv: 'Bitbucket'\nDate: '"$COMMIT_DATE"'\nAuthor: '"$COMMIT_AUTHOR"'\n ```"
+                }' -H "Content-Type: application/json" -X POST https://matter.dblexchange.com/hooks/t34yjuo6a3refeeafr3itdauge
