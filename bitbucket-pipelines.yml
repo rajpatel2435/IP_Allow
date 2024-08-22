@@ -5,7 +5,7 @@ pipelines:
           name: Rsync to PROD and notify Mattermost
           script:
             # Update the remote with rsync
-            - rsync -zrSlh --stats --delete ./* $SD_USER_PROD@$SD_SERVER_PROD:applications/krtbtesmze/public_html/wp-conent/plugins/access-control
+            - rsync -zrSlh --stats --delete ./* $SD_USER_PROD@$SD_SERVER_PROD:applications/krtbtesmze/public_html/wp-content/plugins/access-control
 
             # Install JQ
             - apt-get update && apt-get install -y jq
