@@ -14,7 +14,7 @@ The **IP Allow Plugin** is a powerful and user-friendly tool for managing IP add
 ## Installation
 
 1. **Download the Plugin**
-   - Download the IP Allow Plugin zip file from the [official repository](link-to-your-repository).
+   - Download the IP Allow Plugin zip file from the [official repository](https://github.com/rajpatel2435/IP_Allow).
 
 2. **Upload the Plugin**
    - Go to the WordPress Admin Panel.
